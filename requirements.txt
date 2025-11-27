@@ -1,0 +1,19 @@
+fastapi 
+uvicorn 
+langchain 
+langchain-community 
+chromadb 
+pydantic 
+python-multipart 
+pillow
+pgvector 
+psycopg2-binary
+pytesseract
+langchain-openai
+langchain-openai
+langchain-community
+chromadb
+duckduckgo-search
+pypdf
+
+#source venv/bin/activate
