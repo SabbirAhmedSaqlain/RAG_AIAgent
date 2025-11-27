@@ -1,0 +1,226 @@
+﻿mkdir my_python_app
+cd my_python_app
+
+
+
+
+python3 -m venv venv
+source venv/bin/activate
+
+
+pip install -r requirements.txt
+
+
+
+
+deactivate
+
+
+
+
+
+
+
+
+
+
+Retrieval-Augmented Generation (RAG) System
+* Built a local RAG pipeline using Ollama + Llama 3.1 (8B) with FAISS vector search.
+* Implemented PDF/TXT/MD ingestion, text chunking, and semantic retrieval with nomic-embed-text embeddings.
+* Developed a FastAPI service for context-aware question answering using retrieved document chunks.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Experiments: llama3.1:8b
+✅ 1. Install and Run Ollama
+Install Ollama
+Mac/Linux:
+curl -fsSL https://ollama.com/install.sh | sh
+
+
+Windows (WSL2 Ubuntu):
+curl -fsSL https://ollama.com/install.sh | sh
+
+
+Download Llama 3.1 (8B)
+ollama pull llama3.1:8b
+
+
+Test it
+ollama run llama3.1:8b
+
+
+________________
+
+
+✅ 2. Install Python Dependencies
+pip install fastapi uvicorn python-dotenv requests
+
+
+________________
+
+
+✅ 3. Full Python API Code (FastAPI + Ollama)
+Create server.py:
+from fastapi import FastAPI
+from pydantic import BaseModel
+import requests
+
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+
+
+app = FastAPI(title="Llama 3.1 API", version="1.0")
+
+
+
+
+# ----------- Request Model -----------
+class Query(BaseModel):
+    prompt: str
+    model: str = "llama3.1:8b"
+    stream: bool = False
+
+
+
+
+# ----------- API Endpoint -----------
+@app.post("/generate")
+def generate_text(query: Query):
+    payload = {
+        "model": query.model,
+        "prompt": query.prompt,
+        "stream": query.stream
+    }
+
+
+    # non-streaming response
+    if not query.stream:
+        r = requests.post(OLLAMA_URL, json=payload)
+        return r.json()
+
+
+    # streaming response → chunks combined
+    response_text = ""
+    with requests.post(OLLAMA_URL, json=payload, stream=True) as r:
+        for line in r.iter_lines():
+            if line:
+                part = line.decode("utf-8")
+                response_text += part
+
+
+    return {"response": response_text}
+
+
+________________
+
+
+✅ 4. Run the API Server
+uvicorn server:app --host 0.0.0.0 --port 8000
+
+
+________________
+
+
+✅ 5. Use the API
+POST request
+curl -X POST http://localhost:8000/generate \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Write a poem", "model": "llama3.1:8b"}'
+
+
+Python client example
+import requests
+
+
+url = "http://localhost:8000/generate"
+
+
+payload = {
+    "prompt": "Explain quantum computing to a 5-year-old.",
+    "model": "llama3.1:8b"
+}
+
+
+r = requests.post(url, json=payload)
+print(r.json())
+
+
+________________
+
+
+✅ Optional: Enable Streaming
+{
+  "prompt": "Tell me a story",
+  "model": "llama3.1:8b",
+  "stream": true
+}
+
+
+________________
+
+
+🔥 Bonus: Async Streaming Version (Real-time tokens)
+If you want, I can send:
+✅ WebSocket streaming
+✅ Token-by-token output
+✅ JWT-secured API
+✅ Dockerized version
+✅ Load-balanced multiple models (8B + 70B)
+Just tell me: "give advanced version".
+________________
+
+
+If you want to host this API on your Mac M3, AWS, Ubuntu, or Docker, I can give full steps.
+ChatGPT can make mistakes. Check important info.
+
+
+
+
+
+
+Steps:
+
+
+pip install fastapi uvicorn python-dotenv requests
